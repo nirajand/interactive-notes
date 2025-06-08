@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide: Motivation in Business Administration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony Enhanced (Blues, Greens, Neutrals) -->
+    <!-- Application Structure Plan: The SPA is designed as a single-scroll, thematic dashboard with four distinct interactive sections, moving from foundational concepts to practical applications. This structure was chosen over a linear slide format to encourage user-driven exploration and provide a comprehensive, interactive overview. It starts with a simple definition, moves to interactive theories presented via a clickable pyramid for Maslow and tabbed infographics for others, then uses a dynamic chart to show the 'Why motivation matters', and concludes with an accordion for the 'How it impacts business administration'. This flow guides the user logically while allowing them to dive deeper into any area of interest, making complex business theories more digestible and visually engaging through embedded infographics and iconography. -->
+    <!-- Visualization & Content Choices: 
+        1. What is Motivation? -> Goal: Inform -> Viz: Card layout with bold text and Unicode icons -> Interaction: N/A -> Justification: Clear, distinct sections for intrinsic/extrinsic motivation. -> Method: HTML/CSS.
+        2. Maslow's Hierarchy -> Goal: Organize/Inform -> Viz: Interactive HTML/CSS Pyramid -> Interaction: Click a level to display its details dynamically. -> Justification: The pyramid is the iconic representation; making it interactive enhances learning and exploration. -> Method: HTML/CSS/JS.
+        3. Herzberg's Two-Factor -> Goal: Organize/Compare -> Viz: Two distinct cards with Unicode icons for list items -> Interaction: Tabbed view -> Justification: Clearly separates hygiene and motivator factors with visual cues. -> Method: HTML/CSS/JS.
+        4. Expectancy Theory -> Goal: Inform/Organize -> Viz: HTML/CSS block diagram showing the multiplicative relationship -> Interaction: Tabbed view -> Justification: Visually clarifies the "Expectancy x Instrumentality x Valence" formula as an infographic. -> Method: HTML/CSS/JS.
+        5. Equity Theory -> Goal: Inform/Organize -> Viz: HTML/CSS representation of a balance scale with Unicode icons for equity/inequity -> Interaction: Tabbed view -> Justification: Provides an intuitive visual metaphor for fairness and balance. -> Method: HTML/CSS/JS.
+        6. Why Motivation Matters -> Goal: Compare/Inform -> Viz: Chart.js Polar Area Chart -> Interaction: Click a chart segment to show related textual details. -> Justification: A polar chart visually represents the multifaceted impact of motivation more engagingly than a list, with clickable segments for deeper dives. -> Method: Chart.js.
+        7. Impact on Administration -> Goal: Organize/Inform -> Viz: Accordion with Unicode icons for each section -> Interaction: Click header to expand/collapse content. -> Justification: Condenses detailed information into scannable topics, preventing information overload while making it easy to explore specific administrative areas. -> Method: HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA; /* Light neutral background */
+            color: #343A40;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-link-active {
+            color: #3B82F6;
+            border-bottom: 2px solid #3B82F6;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button-active {
+            color: #1D4ED8;
+            border-color: #1D4ED8;
+        }
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .accordion-header:hover {
+            background-color: #F1F5F9;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .pyramid-level {
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .pyramid-level:hover, .pyramid-level-active {
+            transform: scale(1.03);
+            filter: brightness(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            min-height: 300px;
+            margin: auto;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                min-height: 400px;
+            }
+        }
+        /* Styles for Expectancy Theory Infographic */
+        .expectancy-block {
+            background-color: #EBF4FF; /* Blue-100 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #1E40AF; /* Blue-800 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .formula-operator {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #6B7280; /* Gray-500 */
+        }
+        /* Styles for Equity Theory Infographic */
+        .balance-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: 2rem;
+            height: 150px;
+        }
+        .balance-arm {
+            width: 150px;
+            height: 10px;
+            background-color: #6B7280;
+            border-radius: 5px;
+            position: relative;
+        }
+        .balance-pan {
+            width: 60px;
+            height: 40px;
+            background-color: #D1D5DB;
+            border-radius: 50% / 20%;
+            position: absolute;
+            bottom: -30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.5s ease-in-out;
+        }
+        .balance-pan.left { left: -25px; }
+        .balance-pan.right { right: -25px; }
+        .balance-center {
+            width: 20px;
+            height: 80px;
+            background-color: #6B7280;
+            position: relative;
+            z-index: -1;
+            border-radius: 5px;
+        }
+        .balance-base {
+            width: 100px;
+            height: 20px;
+            background-color: #6B7280;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .balanced .balance-arm { transform: rotate(0deg); }
+        .unequal-left .balance-arm { transform: rotate(-10deg); }
+        .unequal-right .balance-arm { transform: rotate(10deg); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-800">Motivation in Business</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-4">
+                        <a data-target="intro" class="nav-link text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Introduction</a>
+                        <a data-target="theories" class="nav-link text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Theories</a>
+                        <a data-target="impact" class="nav-link text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Why it Matters</a>
+                        <a data-target="application" class="nav-link text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">Application</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="intro" class="scroll-mt-20 py-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">What is Motivation?</h2>
+            <p class="text-center max-w-3xl mx-auto text-gray-600 mb-12">Motivation refers to the psychological processes that account for an individual's <strong style="color: #2233FF">intensity, direction, and persistence</strong> of effort toward attaining a goal. It's the fundamental "why" behind human actions, explaining not only what people choose to do, but also how much effort they invest and for how long they sustain that effort.</p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card p-8 shadow-md">
+                    <h3 class="text-2xl font-semibold mb-4 text-blue-600 flex items-center gap-2"><span class="text-3xl">💡</span> Intrinsic Motivation</h3>
+                    <p class="text-gray-600 mb-4">This stems from within an individual, driven by inherent interest or enjoyment in the task itself. It is propelled by internal rewards and satisfaction derived from meaningful work.</p>
+                    <p class="font-semibold text-gray-700">Examples: Sense of achievement, opportunities for personal growth, enjoyment of the task itself.</p>
+                </div>
+                <div class="card p-8 shadow-md">
+                    <h3 class="text-2xl font-semibold mb-4 text-green-600 flex items-center gap-2"><span class="text-3xl">🏅</span> Extrinsic Motivation</h3>
+                    <p class="text-gray-600 mb-4">This originates from outside the individual, propelled by external rewards or the avoidance of punishment.</p>
+                    <p class="font-semibold text-gray-700">Examples: Salary, bonuses, promotions, recognition, or job security.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+
+        <section id="theories" class="scroll-mt-20 py-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Exploring Core Motivational Theories</h2>
+            <p class="text-center max-w-3xl mx-auto text-gray-600 mb-12">Understanding that individuals are driven by diverse needs is crucial. These needs often exist in a hierarchical structure, meaning some needs must be met before others become significant motivators. Click on the tabs below to explore different theories, or interact with the pyramid to learn about Maslow's hierarchy.</p>
+            
+            <div class="flex justify-center mb-8 border-b-2 border-gray-200">
+                 <button data-tab="maslow" class="tab-button py-3 px-6 font-semibold text-gray-600 hover:text-blue-700">Maslow</button>
+                 <button data-tab="herzberg" class="tab-button py-3 px-6 font-semibold text-gray-600 hover:text-blue-700">Herzberg</button>
+                 <button data-tab="vroom" class="tab-button py-3 px-6 font-semibold text-gray-600 hover:text-blue-700">Vroom</button>
+                 <button data-tab="adams" class="tab-button py-3 px-6 font-semibold text-gray-600 hover:text-blue-700">Adams</button>
+            </div>
+
+            <div id="theory-content" class="min-h-[450px]">
+                <div data-content="maslow" class="theory-panel">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div id="pyramid-container" class="flex flex-col-reverse relative w-full max-w-sm mx-auto shadow-lg rounded-lg overflow-hidden">
+                            <div data-level="1" class="pyramid-level w-full h-16 bg-blue-600 flex items-center justify-center text-white font-bold text-sm md:text-base px-2">Physiological</div>
+                            <div data-level="2" class="pyramid-level w-full h-16 bg-blue-500 flex items-center justify-center text-white font-bold text-sm md:text-base px-2" style="clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); margin-left: auto; margin-right: auto;">Safety</div>
+                            <div data-level="3" class="pyramid-level w-full h-16 bg-blue-400 flex items-center justify-center text-white font-bold text-sm md:text-base px-2" style="clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); margin-left: auto; margin-right: auto;">Social</div>
+                            <div data-level="4" class="pyramid-level w-full h-16 bg-blue-300 flex items-center justify-center text-white font-bold text-sm md:text-base px-2" style="clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%); margin-left: auto; margin-right: auto;">Esteem</div>
+                            <div data-level="5" class="pyramid-level w-full h-16 bg-blue-200 flex items-center justify-center text-gray-800 font-bold text-sm md:text-base px-2" style="clip-path: polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%); margin-left: auto; margin-right: auto;">Self-Actualization</div>
+                        </div>
+                        <div id="pyramid-details" class="card p-6 min-h-[300px] shadow-md">
+                            <h3 id="pyramid-title" class="text-xl font-bold mb-2 text-gray-800">Select a level</h3>
+                            <p id="pyramid-text" class="text-gray-600">Click on a level of the pyramid to see its description and application in a business context. <br><br>The implication for management is clear: to effectively motivate employees, one must first understand their current needs on this hierarchy. Addressing lower-level needs is essential before higher-level motivators can truly inspire and engage.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-content="herzberg" class="theory-panel hidden">
+                     <div class="grid md:grid-cols-2 gap-8">
+                        <div class="card p-6 border-t-4 border-red-500 shadow-md">
+                            <h3 class="text-xl font-bold mb-3 text-red-700 flex items-center gap-2"><span class="text-3xl">🚫</span> Hygiene Factors (Dissatisfiers)</h3>
+                            <p class="mb-4 text-gray-600">Their absence causes dissatisfaction, but their presence doesn't necessarily motivate. They are the essentials for a non-hostile work environment.</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>⚙️ Company policy & Administration</li>
+                                <li>🤝 Supervision</li>
+                                <li>🏢 Working conditions</li>
+                                <li>💰 Salary & Job security</li>
+                                <li>👥 Interpersonal relations</li>
+                            </ul>
+                        </div>
+                        <div class="card p-6 border-t-4 border-green-500 shadow-md">
+                            <h3 class="text-xl font-bold mb-3 text-green-700 flex items-center gap-2"><span class="text-3xl">✨</span> Motivator Factors (Satisfiers)</h3>
+                            <p class="mb-4 text-gray-600">These factors actively encourage better performance and lead to long-term satisfaction. They are about the job itself.</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>🏆 Achievement & Recognition</li>
+                                <li>🎯 The work itself</li>
+                                <li>責️ Responsibility & Advancement</li>
+                                <li>📈 Personal growth & Promotion</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div data-content="vroom" class="theory-panel hidden card p-8 max-w-3xl mx-auto shadow-md">
+                    <h3 class="text-2xl font-bold mb-4 text-blue-700">Expectancy Theory (Vroom)</h3>
+                    <p class="mb-6 text-gray-600">This theory suggests that individuals are motivated to act based on what they expect the result of their actions will be. Motivation is a product of three factors:</p>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-lg font-bold">
+                        <div class="expectancy-block">Effort (Expectancy)</div>
+                        <span class="formula-operator">✖️</span>
+                        <div class="expectancy-block">Performance (Instrumentality)</div>
+                        <span class="formula-operator">✖️</span>
+                        <div class="expectancy-block">Outcome (Valence)</div>
+                        <span class="formula-operator">=</span>
+                        <div class="expectancy-block bg-blue-700 text-white">Motivation</div>
+                    </div>
+                    <div class="space-y-4 mt-6 text-gray-700">
+                        <p><strong class="text-blue-600">Expectancy:</strong> The belief that one's effort will result in the desired performance. "If I work harder, can I achieve this?"</p>
+                        <p><strong class="text-blue-600">Instrumentality:</strong> The belief that performance will lead to a specific outcome or reward. "If I achieve this, will I get a reward?"</p>
+                        <p><strong class="text-blue-600">Valence:</strong> The value an individual places on the reward. "Do I actually want this reward?"</p>
+                    </div>
+                </div>
+                
+                <div data-content="adams" class="theory-panel hidden card p-8 max-w-3xl mx-auto shadow-md">
+                    <h3 class="text-2xl font-bold mb-4 text-green-700">Equity Theory (Adams)</h3>
+                    <p class="mb-6 text-gray-600">This theory focuses on the idea of fairness. Individuals are motivated when they perceive that they are being treated fairly in comparison to others. They compare their own input-to-outcome ratio with the ratios of their peers.</p>
+                    <div class="flex flex-col items-center">
+                        <div id="balance-scale" class="balance-container">
+                            <div class="balance-center"></div>
+                            <div class="balance-arm">
+                                <div class="balance-pan left">⚖️<br>Input</div>
+                                <div class="balance-pan right">🎁<br>Outcome</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                            <div class="card p-4 border-t-4 border-green-500 flex-1 text-center shadow-sm">
+                                <p class="text-lg font-bold text-green-600 mb-2">Equity: ✨ Balanced</p>
+                                <p class="text-gray-700">Perceived fairness leads to motivation and satisfaction. Input/Outcome ratio is equal to others.</p>
+                            </div>
+                            <div class="card p-4 border-t-4 border-red-500 flex-1 text-center shadow-sm">
+                                <p class="text-lg font-bold text-red-600 mb-2">Inequity:  unbalanced</p>
+                                <p class="text-gray-700">Perceived unfairness (under/over-rewarded) creates tension and demotivation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+
+        <section id="impact" class="scroll-mt-20 py-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Why Motivation Matters in Business</h2>
+            <p class="text-center max-w-3xl mx-auto text-gray-600 mb-12">Motivation is not merely a "soft skill" or a secondary concern; it's a strategic imperative that directly impacts a business's success. A highly motivated workforce contributes to: Click on the different segments of the chart to learn more about each specific benefit.</p>
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="chart-container shadow-lg rounded-lg p-4 bg-white">
+                    <canvas id="impactChart"></canvas>
+                </div>
+                <div id="impact-details" class="card p-6 min-h-[300px] shadow-md">
+                     <h3 id="impact-title" class="text-xl font-bold mb-2 text-gray-800">Explore the Benefits</h3>
+                     <p id="impact-text" class="text-gray-600">Click on a segment in the chart to see details about its impact on the business.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+
+        <section id="application" class="scroll-mt-20 py-12">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-4">Practical Application in Business Administration</h2>
+             <p class="text-center max-w-3xl mx-auto text-gray-600 mb-12">Understanding motivation is one thing; applying it is another. Effective business administration integrates motivational principles into its core functions to create an environment where employees can thrive. Click on each administrative area to see how it's impacted.</p>
+            <div id="accordion-container" class="space-y-4 max-w-4xl mx-auto">
+                <div class="card overflow-hidden shadow-md">
+                    <div class="accordion-header flex justify-between items-center p-5">
+                        <h3 class="font-semibold text-lg text-blue-700 flex items-center gap-2">🧑‍💼 Human Resource Management (HRM)</h3>
+                        <span class="transform transition-transform duration-300">▼</span>
+                    </div>
+                    <div class="accordion-content px-5 pb-5">
+                        <ul class="list-disc list-inside space-y-2 text-gray-600 pt-2">
+                           <li> <strong>Talent Acquisition & Retention:</strong> HR strategies must be designed to attract and retain top talent by creating a motivating work environment, offering competitive compensation, and highlighting opportunities for growth.</li>
+                           <li> <strong>Performance Management:</strong> Systems for setting goals, providing feedback, and evaluating performance are most effective when they are designed to motivate and recognize employee contributions.</li>
+                           <li> <strong>Compensation & Benefits:</strong> Crafting fair, competitive, and incentive-based reward structures is critical for extrinsic motivation.</li>
+                           <li> <strong>Training & Development:</strong> Investing in employee training and career development fulfills higher-order needs and boosts intrinsic motivation by enhancing skills and career prospects.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card overflow-hidden shadow-md">
+                    <div class="accordion-header flex justify-between items-center p-5">
+                        <h3 class="font-semibold text-lg text-green-700 flex items-center gap-2">👔 Leadership & Management</h3>
+                        <span class="transform transition-transform duration-300">▼</span>
+                    </div>
+                    <div class="accordion-content px-5 pb-5">
+                        <ul class="list-disc list-inside space-y-2 text-gray-600 pt-2">
+                           <li> <strong>Leadership Skills:</strong> Effective leaders understand and adapt their management styles (e.g., transformational, participative) to inspire and empower their teams, recognizing individual motivators.</li>
+                           <li> <strong>Decision-Making</strong> Motivated employees are more likely to participate willingly in decision-making processes and commit to the outcomes.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card overflow-hidden shadow-md">
+                    <div class="accordion-header flex justify-between items-center p-5">
+                        <h3 class="font-semibold text-lg text-purple-700 flex items-center gap-2">🏛️ Organizational Culture</h3>
+                        <span class="transform transition-transform duration-300">▼</span>
+                    </div>
+                    <div class="accordion-content px-5 pb-5">
+                        <ul class="list-disc list-inside space-y-2 text-gray-600 pt-2">
+                           <li>A strong, positive organizational culture—one that values <strong>recognition, autonomy, transparency, and employee well-being</strong>—is inherently conducive to fostering high levels of motivation.</li>
+                           <li><strong>Open communication and trust</strong> are vital for employee engagement.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card overflow-hidden shadow-md">
+                    <div class="accordion-header flex justify-between items-center p-5">
+                        <h3 class="font-semibold text-lg text-orange-700 flex items-center gap-2">📈 Strategic Planning</h3>
+                        <span class="transform transition-transform duration-300">▼</span>
+                    </div>
+                    <div class="accordion-content px-5 pb-5">
+                        <ul class="list-disc list-inside space-y-2 text-gray-600 pt-2">
+                           <li>Understanding what motivates the workforce is essential when designing <strong>organizational structures, defining job roles, and implementing strategic initiatives.</strong></li>
+                           <li>Employee <strong>buy-in and commitment<strong> are vital for successful strategy execution. Motivated teams are more <strong>adaptable to change</strong> and strategic shifts.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>An Interactive Guide to Motivation in Business Administration.</p>
+            <p class="mt-1 text-gray-400">Presented & &copy; by Cristina Dhakal &bull; 2025</p>
+            <p class="mt-2 text-gray-500">Based on "Motivation and Its Implication in Business Administration" presentation slides.</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Data for interactive elements ---
+    const pyramidData = {
+        1: { title: "Physiological Needs", text: "These are the most basic requirements for survival, such as food, water, and shelter. In a business context, this translates to adequate salary to cover living expenses and basic working conditions." },
+        2: { title: "Safety Needs", text: "Once physiological needs are met, individuals seek security and stability. This includes job security, safe working environments, and benefits like health insurance." },
+        3: { title: "Social Needs (Belongingness)", text: "People have a fundamental desire for belonging and connection. This is fulfilled through teamwork, positive relationships with colleagues, and a sense of community within the workplace." },
+        4: { title: "Esteem Needs", text: "At this level, individuals seek recognition, respect, and a sense of accomplishment. This can be met through promotions, awards, challenging assignments, and opportunities for leadership." },
+        5: { title: "Self-Actualization Needs", text: "This is the highest level, where individuals strive to realize their full potential and achieve personal growth. Businesses can support this through opportunities for skill development, autonomy, and engaging in meaningful, impactful work." }
+    };
+    
+    const impactData = {
+        labels: ['Productivity & Performance', 'Engagement & Morale', 'Reduced Turnover & Absen.', 'Innovation & Creativity', 'Improved Quality of Work', 'Better Customer Sat.', 'Achieves Goals'],
+        datasets: [{
+            data: [10, 10, 10, 10, 10, 10, 10],
+            backgroundColor: ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#F59E0B', '#3498DB'],
+        }],
+        details: [
+            { title: "Enhanced Productivity & Performance", text: "Motivated employees are more efficient, work harder, and consistently produce higher quality results. This directly impacts employee output and overall business efficiency." },
+            { title: "Higher Employee Engagement & Morale", text: "A motivated team is generally happier, more enthusiastic, and actively involved in their work. This creates a positive and energetic work environment where employees feel valued and committed." },
+            { title: "Reduced Turnover & Absenteeism", text: "Engaged employees are less likely to leave the company or be absent from work. This significantly cuts recruitment and training costs, leading to a more stable and reliable workforce." },
+            { title: "Greater Innovation & Creativity", text: "Motivated individuals are more likely to think outside the box, propose new ideas, and solve problems creatively. This fosters a dynamic environment where innovation thrives." },
+            { title: "Improved Quality of Work", text: "When employees are dedicated and passionate about their roles, they pay greater attention to detail and strive for excellence in every task. This leads to higher quality products, services, and overall outcomes." },
+            { title: "Better Customer Satisfaction", text: "Employees who are motivated and happy in their roles often provide superior customer service. Their positive attitude and dedication can directly translate into increased customer loyalty and positive brand perception." },
+            { title: "Achievement of Organizational Goals", text: "Ultimately, a motivated workforce is the driving force behind a company's ability to meet its objectives and gain a competitive advantage. Their collective effort and drive directly contribute to the company's success and sustainability." }
+        ]
+    };
+
+    // --- Smooth Scrolling & Nav Highlighting ---
+    const navLinks = document.getElementById('nav-links');
+    const sections = document.querySelectorAll('main section');
+
+    navLinks.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A') {
+            const targetId = e.target.getAttribute('data-target');
+            document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    const observerOptions = { root: null, threshold: 0.3 };
+    const sectionObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const link = navLinks.querySelector(`a[data-target=${entry.target.id}]`);
+                navLinks.querySelectorAll('a').forEach(a => a.classList.remove('nav-link-active'));
+                if(link) link.classList.add('nav-link-active');
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => sectionObserver.observe(section));
+
+
+    // --- Theory Tabs ---
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const theoryPanels = document.querySelectorAll('.theory-panel');
+    
+    const switchTab = (tabName) => {
+        tabButtons.forEach(button => {
+            button.classList.toggle('tab-button-active', button.dataset.tab === tabName);
+        });
+        theoryPanels.forEach(panel => {
+            panel.classList.toggle('hidden', panel.dataset.content !== tabName);
+        });
+        // Special handling for Equity Theory to reset balance scale on tab switch
+        if (tabName === 'adams') {
+            document.getElementById('balance-scale').classList.add('balanced');
+            document.getElementById('balance-scale').classList.remove('unequal-left', 'unequal-right');
+        }
+    };
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+    switchTab('maslow'); // Initialize with Maslow tab active
+
+    // --- Maslow's Pyramid Interaction ---
+    const pyramidContainer = document.getElementById('pyramid-container');
+    const pyramidDetails = document.getElementById('pyramid-details');
+    const pyramidTitle = document.getElementById('pyramid-title');
+    const pyramidText = document.getElementById('pyramid-text');
+    
+    pyramidContainer.addEventListener('click', (e) => {
+        const levelElement = e.target.closest('.pyramid-level');
+        if (levelElement) {
+            const level = levelElement.dataset.level;
+            const data = pyramidData[level];
+            
+            pyramidTitle.textContent = data.title;
+            pyramidText.textContent = data.text;
+            
+            document.querySelectorAll('.pyramid-level').forEach(el => el.classList.remove('pyramid-level-active'));
+            levelElement.classList.add('pyramid-level-active');
+        }
+    });
+
+    // --- Impact Chart (Chart.js) ---
+    const ctx = document.getElementById('impactChart').getContext('2d');
+    const impactChart = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: impactData.labels,
+            datasets: impactData.datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    pointLabels: { display: false },
+                    ticks: { display: false },
+                    grid: { circular: true }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 12 },
+                        generateLabels: function(chart) {
+                            const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                            return labels.map((label) => {
+                                // Add a check to ensure label.text is a string before splitting
+                                const originalText = typeof label.text === 'string' ? label.text : '';
+                                const words = originalText.split(' ');
+                                let wrappedText = [];
+                                let currentLine = '';
+
+                                for (let i = 0; i < words.length; i++) {
+                                    // If adding the next word makes the line too long, start a new line
+                                    // Consider if the line is empty to avoid leading space
+                                    if ((currentLine + (currentLine ? ' ' : '') + words[i]).length > 16 && currentLine !== '') {
+                                        wrappedText.push(currentLine);
+                                        currentLine = words[i];
+                                    } else {
+                                        currentLine += (currentLine ? ' ' : '') + words[i];
+                                    }
+                                }
+                                wrappedText.push(currentLine); // Push the last line
+                                label.text = wrappedText.join('\n');
+                                return label;
+                            });
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label.replace(/\n/g, ' '); // Remove newlines for tooltip
+                        }
+                    }
+                }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const detail = impactData.details[index];
+                    document.getElementById('impact-title').textContent = detail.title;
+                    document.getElementById('impact-text').textContent = detail.text;
+                }
+            }
+        }
+    });
+
+    // --- Accordion ---
+    const accordionContainer = document.getElementById('accordion-container');
+    accordionContainer.addEventListener('click', (e) => {
+        const header = e.target.closest('.accordion-header');
+        if (header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('span');
+
+            // Close other open accordions
+            header.parentElement.parentElement.querySelectorAll('.accordion-content').forEach(item => {
+                if (item !== content && item.style.maxHeight) {
+                    item.style.maxHeight = null;
+                    item.previousElementSibling.querySelector('span').classList.remove('rotate-180');
+                }
+            });
+
+            // Toggle current accordion
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.classList.remove('rotate-180');
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.classList.add('rotate-180');
+            }
+        }
+    });
+
+    // --- Equity Theory Balance Scale Animation ---
+    const balanceScale = document.getElementById('balance-scale');
+    const balancePanLeft = balanceScale.querySelector('.balance-pan.left');
+    const balancePanRight = balanceScale.querySelector('.balance-pan.right');
+
+    const animateBalance = (isEquity) => {
+        balanceScale.classList.remove('balanced', 'unequal-left', 'unequal-right');
+        if (isEquity) {
+            balanceScale.classList.add('balanced');
+        } else {
+            // Randomly choose which side is heavier for visual effect
+            if (Math.random() > 0.5) {
+                balanceScale.classList.add('unequal-left');
+            } else {
+                balanceScale.classList.add('unequal-right');
+            }
+        }
+    };
+    
+    // Initial state for Equity Theory tab
+    switchTab('maslow');
+    // Set initial balance state when Adams tab is first shown
+    document.querySelector('button[data-tab="adams"]').addEventListener('click', () => {
+        animateBalance(true); // Start balanced
+    });
+
+    // Add a simple interaction to the balance pans if desired
+    balancePanLeft.addEventListener('click', () => animateBalance(false));
+    balancePanRight.addEventListener('click', () => animateBalance(false));
+});
+</script>
+</body>
+</html>
