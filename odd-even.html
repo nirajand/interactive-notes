@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Number Tasks: Odd/Even, Fibonacci, Factorial</title>
+</head>
+<body>
+  <h1>Number Tasks: Odd/Even, Fibonacci, Factorial</h1>
+  <button id="startBtn">Start Program</button>
+
+  <script>
+    function isValidInteger(input) {
+      return /^-?\d+$/.test(input.trim());
+    }
+
+    function promptForInteger(message) {
+      let input;
+      while (true) {
+        input = prompt(message);
+        if (input === null) {
+          alert("Input cancelled.");
+          return null;
+        }
+        if (isValidInteger(input)) {
+          return parseInt(input.trim(), 10);
+        } else {
+          alert("Invalid input. Please enter a valid integer number.");
+        }
+      }
+    }
+
+    function oddOrEven() {
+      const num = promptForInteger("Enter an integer to check if it is Odd or Even:");
+      if (num === null) return;
+      alert(`${num} is ${num % 2 === 0 ? "Even" : "Odd"}.`);
+    }
+
+    function fibonacciSequence() {
+      const count = promptForInteger("Enter how many Fibonacci numbers to generate (non-negative integer):");
+      if (count === null) return;
+      if (count < 0) {
+        alert("Please enter a non-negative integer.");
+        return;
+      }
+      const fib = [];
+      for (let i = 0; i < count; i++) {
+        if (i === 0) fib.push(0);
+        else if (i === 1) fib.push(1);
+        else fib.push(fib[i - 1] + fib[i - 2]);
+      }
+      alert(`First ${count} Fibonacci numbers: ${fib.join(", ")}`);
+    }
+
+    function factorial() {
+      const num = promptForInteger("Enter a non-negative integer to calculate its factorial:");
+      if (num === null) return;
+      if (num < 0) {
+        alert("Please enter a non-negative integer.");
+        return;
+      }
+      let fact = 1;
+      for (let i = 2; i <= num; i++) {
+        fact *= i;
+      }
+      alert(`${num}! = ${fact}`);
+    }
+
+    function main() {
+      while (true) {
+        const choice = prompt(
+          "Choose a task:\n1. Odd or Even\n2. Fibonacci Sequence\n3. Factorial\n4. Exit"
+        );
+        if (choice === null || choice === "4") {
+          alert("Goodbye!");
+          break;
+        }
+
+        switch (choice.trim()) {
+          case "1":
+            oddOrEven();
+            break;
+          case "2":
+            fibonacciSequence();
+            break;
+          case "3":
+            factorial();
+            break;
+          default:
+            alert("Invalid choice. Please select 1, 2, 3, or 4.");
+        }
+      }
+    }
+
+    document.getElementById("startBtn").addEventListener("click", main);
+  </script>
+</body>
+</html>
