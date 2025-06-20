@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laplacian Distribution Notes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <style>
+        .math-container {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .section-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="md:hidden fixed top-4 left-4 z-50">
+        <button id="menuToggle" class="p-2 rounded-md bg-blue-500 text-white shadow-lg">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full w-64 bg-white shadow-lg p-4 z-40 overflow-y-auto">
+        <div class="flex items-center mb-8">
+            <i class="fas fa-book-open text-blue-500 text-2xl mr-2"></i>
+            <h1 class="text-xl font-bold text-gray-800">Math Notes</h1>
+        </div>
+        <nav>
+            <ul class="space-y-2">
+                <li><a href="#definition" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Definition</a></li>
+                <li><a href="#intuition" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Shape Intuition</a></li>
+                <li><a href="#derivation" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Derivation</a></li>
+                <li><a href="#cdf" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">CDF</a></li>
+                <li><a href="#moments" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Moments</a></li>
+                <li><a href="#mle" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">MLE</a></li>
+                <li><a href="#regularization" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">L1 Regularization</a></li>
+                <li><a href="#visualization" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Visualization</a></li>
+                <li><a href="#applications" class="nav-link block py-2 px-3 text-gray-700 hover:text-blue-500">Applications</a></li>
+            </ul>
+        </nav>
+        <div class="mt-8">
+            <button id="exportPdf" class="w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center justify-center">
+                <i class="fas fa-file-pdf mr-2"></i> Export as PDF
+            </button>
+            <button id="exportMarkdown" class="w-full py-2 px-4 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 mt-2 flex items-center justify-center">
+                <i class="fab fa-markdown mr-2"></i> Export as Markdown
+            </button>
+        </div>
+    </div>
+
+    <div class="md:ml-64 p-6">
+        <header class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 mb-8 text-white shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2">Laplacian Distribution</h1>
+                    <p class="text-blue-100">Complete mathematical notes with derivations and applications</p>
+                </div>
+                <div class="hidden md:block">
+                    <i class="fas fa-chart-line text-5xl opacity-20"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 gap-6">
+            <section id="definition" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Definition</h2>
+                </div>
+                <div class="math-container">
+                    $$ f(x | \mu, b) = \frac{1}{2b} \exp\left(-\frac{|x - \mu|}{b}\right) $$
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>The <span class="font-semibold text-blue-600">Laplacian distribution</span> (also called the <span class="font-semibold">double exponential distribution</span>) is a continuous probability distribution defined as above.</p>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Parameters:</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>$\mu \in \mathbb{R}$ is the <span class="font-medium">location parameter</span> (mean)</li>
+                                <li>$b > 0$ is the <span class="font-medium">scale parameter</span> (spread)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Key Properties:</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Symmetric around $\mu$</li>
+                                <li>Sharper peak and heavier tails than normal distribution</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="intuition" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-brain text-purple-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Shape Intuition</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>The Laplacian distribution has a distinctive shape compared to the normal distribution:</p>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold text-lg mb-2">Visual Characteristics:</h3>
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li>Looks like a "sharper" normal distribution</li>
+                                <li>The <span class="font-medium">exponential decay</span> is linear in the absolute deviation</li>
+                                <li>More robust to outliers than Gaussian</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg mb-2">Tail Decay Comparison:</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-gray-50 rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-200">
+                                        <tr>
+                                            <th class="py-2 px-4 text-left">Distribution</th>
+                                            <th class="py-2 px-4 text-left">Decay of tails</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-200">
+                                            <td class="py-3 px-4">Normal</td>
+                                            <td class="py-3 px-4">$\exp(-x^2)$</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-3 px-4">Laplacian</td>
+                                            <td class="py-3 px-4">$\exp(-|x|)$</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    The Laplacian's linear decay in the exponent means it has much heavier tails than the Gaussian's quadratic decay.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="derivation" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-calculator text-green-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Derivation: PDF from Exponential Differences</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>The Laplacian distribution can be derived as the difference of two i.i.d. exponential variables.</p>
+                    <div class="math-container mt-4">
+                        Let:
+                        $$ X_1, X_2 \sim \text{Exponential}(\lambda) \quad \text{i.i.d.} $$
+                        $$ Y = X_1 - X_2 $$
+                        Then:
+                        $$ Y \sim \text{Laplacian}(0, 1/\lambda) $$
+                    </div>
+                    <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-question-circle text-blue-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    This derivation shows how the Laplacian distribution naturally arises from the difference of exponential random variables, explaining its characteristic double-sided exponential shape.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cdf" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-red-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-chart-area text-red-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Cumulative Distribution Function (CDF)</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>The CDF of the Laplacian distribution is piecewise defined:</p>
+                    <div class="math-container mt-4">
+                        For $x \ge \mu$:
+                        $$ F(x) = 1 - \frac{1}{2} \exp\left(-\frac{x - \mu}{b} \right) $$
+                        For $x < \mu$:
+                        $$ F(x) = \frac{1}{2} \exp\left(\frac{x - \mu}{b} \right) $$
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Key Points:</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Continuous at $x = \mu$</li>
+                                <li>Reflects the symmetry of the distribution</li>
+                                <li>Approaches 0 as $x \to -\infty$ and 1 as $x \to +\infty$</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Quantile Function:</h3>
+                            <div class="math-container">
+                                $$ F^{-1}(p) = \mu - b\,\text{sgn}(p-0.5)\ln(1 - 2|p-0.5|) $$
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="moments" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-indigo-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-chart-bar text-indigo-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Moments</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-gray-50 rounded-lg overflow-hidden">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="py-2 px-4 text-left">Moment</th>
+                                    <th class="py-2 px-4 text-left">Value</th>
+                                    <th class="py-2 px-4 text-left">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 px-4 font-medium">Mean</td>
+                                    <td class="py-3 px-4">$\mathbb{E}[X] = \mu$</td>
+                                    <td class="py-3 px-4">Center of the distribution</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 px-4 font-medium">Median</td>
+                                    <td class="py-3 px-4">$\mu$</td>
+                                    <td class="py-3 px-4">Same as mean for symmetric distribution</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 px-4 font-medium">Mode</td>
+                                    <td class="py-3 px-4">$\mu$</td>
+                                    <td class="py-3 px-4">Peak of the distribution</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 px-4 font-medium">Variance</td>
+                                    <td class="py-3 px-4">$\text{Var}(X) = 2b^2$</td>
+                                    <td class="py-3 px-4">Measure of spread</td>
+                                </tr>
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-3 px-4 font-medium">Skewness</td>
+                                    <td class="py-3 px-4">$0$</td>
+                                    <td class="py-3 px-4">Symmetric distribution</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium">Kurtosis</td>
+                                    <td class="py-3 px-4">$3$ (Excess = 3)</td>
+                                    <td class="py-3 px-4">Higher than normal → heavier tails</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 bg-purple-50 border-l-4 border-purple-400 p-4 rounded-r-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-chart-line text-purple-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-purple-700">
+                                    The higher kurtosis indicates that the Laplacian distribution has more probability mass in the tails compared to the normal distribution, making it more prone to producing outliers.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mle" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-teal-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-search text-teal-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Maximum Likelihood Estimation (MLE)</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>Given a sample $x_1, x_2, \dots, x_n$, the MLE estimates are:</p>
+                    <div class="math-container mt-4">
+                        For $\mu$:
+                        $$ \hat{\mu} = \text{median}(x_1, x_2, \dots, x_n) $$
+                        For $b$:
+                        $$ \hat{b} = \frac{1}{n} \sum_{i=1}^{n} |x_i - \hat{\mu}| $$
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Robustness:</h3>
+                            <p>The use of the median makes the Laplacian distribution robust to outliers, unlike the normal distribution where the mean is used.</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Intuition:</h3>
+                            <p>The estimator for $b$ is essentially the mean absolute deviation from the median, which aligns with the distribution's definition.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="regularization" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-orange-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-project-diagram text-orange-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Connection to L1 Regularization</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>In Bayesian statistics, the Laplacian distribution plays a key role in regularization:</p>
+                    <div class="math-container mt-4">
+                        Assuming Laplacian prior on coefficients:
+                        $$ \theta \sim \text{Laplace}(0, b) $$
+                        Results in:
+                        $$ p(\theta) \propto \exp\left(-\frac{|\theta|}{b}\right) $$
+                        Which corresponds to <span class="font-semibold">L1 regularization</span> (used in Lasso Regression).
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Sparsity:</h3>
+                            <p>The Laplacian prior encourages sparsity in parameter estimates, driving some coefficients exactly to zero.</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Comparison:</h3>
+                            <p>Contrast with Gaussian prior which leads to L2 regularization (Ridge Regression) and doesn't produce exact zeros.</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-code-branch text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-green-700">
+                                    This connection explains why Lasso (L1) regression is particularly effective for feature selection in high-dimensional spaces.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="visualization" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-pink-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-eye text-pink-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Interactive Visualization</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <p>Explore how the parameters $\mu$ and $b$ affect the Laplacian distribution's shape:</p>
+                    
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg shadow-inner">
+                        <div class="mb-4">
+                            <label for="muSlider" class="block text-sm font-medium text-gray-700">Location Parameter ($\mu$): <span id="muValue">0</span></label>
+                            <input type="range" id="muSlider" min="-5" max="5" value="0" step="0.1" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer range-lg">
+                        </div>
+                        <div class="mb-4">
+                            <label for="bSlider" class="block text-sm font-medium text-gray-700">Scale Parameter ($b$): <span id="bValue">1</span></label>
+                            <input type="range" id="bSlider" min="0.1" max="3" value="1" step="0.1" class="w-full h-2 bg-pink-100 rounded-lg appearance-none cursor-pointer range-lg">
+                        </div>
+                        <div class="mb-4 flex items-center">
+                            <input type="checkbox" id="showNormal" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2">
+                            <label for="showNormal" class="text-sm font-medium text-gray-700">Compare with Normal Distribution</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-white rounded-lg p-2 border border-gray-200">
+                        <canvas id="laplacianChart" class="w-full"></canvas>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">How to use:</h3>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Adjust the $\mu$ slider to shift the peak horizontally.</li>
+                                <li>Adjust the $b$ slider to change the spread and height. Smaller $b$ means taller, narrower peak.</li>
+                                <li>Check "Compare with Normal Distribution" to see the difference in tails.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-gray-800 mb-2">Insights:</h3>
+                            <p>Observe how the Laplacian distribution maintains a sharp peak and heavier tails compared to the Gaussian, especially evident when $b$ is small.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="applications" class="section-card bg-white rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <div class="bg-yellow-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-rocket text-yellow-500 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Applications</h2>
+                </div>
+                <div class="mt-4 text-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-robot text-blue-500 mr-2"></i>
+                                <h3 class="font-semibold text-blue-700">Machine Learning</h3>
+                            </div>
+                            <p>L1 Regularization for sparse models (Lasso Regression)</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-wave-square text-purple-500 mr-2"></i>
+                                <h3 class="font-semibold text-purple-700">Signal Processing</h3>
+                            </div>
+                            <p>Noise modeling in communication systems</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-compress-arrows-alt text-green-500 mr-2"></i>
+                                <h3 class="font-semibold text-green-700">Compressed Sensing</h3>
+                            </div>
+                            <p>Basis pursuit algorithms</p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-image text-red-500 mr-2"></i>
+                                <h3 class="font-semibold text-red-700">Image Processing</h3>
+                            </div>
+                            <p>Edge detection and feature extraction</p>
+                        </div>
+                        <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
+                                <h3 class="font-semibold text-indigo-700">Finance</h3>
+                            </div>
+                            <p>Modeling returns with heavier tails</p>
+                        </div>
+                        <div class="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-dna text-teal-500 mr-2"></i>
+                                <h3 class="font-semibold text-teal-700">Genomics</h3>
+                            </div>
+                            <p>Sparse modeling of gene expression</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 bg-indigo-50 border-l-4 border-indigo-400 p-4 rounded-r-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb text-indigo-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-indigo-700">
+                                    The Laplacian distribution's properties make it particularly useful in scenarios where robustness to outliers or sparsity is desired.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <footer class="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
+            <div class="flex justify-center space-x-4 mb-4">
+                <a href="https://github.com/dhakalnirajan" class="hover:text-blue-500"><i class="fab fa-github"></i></a>
+                <a href="https://x.com/nirajan.dhakal_7" class="hover:text-blue-500"><i class="fab fa-twitter"></i></a>
+                <a href="https://linkedin.com/in/nirajandhakal07" class="hover:text-blue-500"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <p>&copy; Nirajan Dhakal. All rights reserved.</p>
+            <p class="mt-1">Created with <i class="fas fa-heart text-red-500"></i> for probability distributions</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Close mobile menu if open
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Export buttons functionality
+        document.getElementById('exportPdf').addEventListener('click', function() {
+            alert('PDF export functionality would be implemented here with a library like jsPDF');
+        });
+
+        document.getElementById('exportMarkdown').addEventListener('click', function() {
+            alert('Markdown export functionality would be implemented here');
+        });
+
+        // MathJax configuration
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+
+        // --- Interactive Visualization Logic (Chart.js) ---
+        const muSlider = document.getElementById('muSlider');
+        const bSlider = document.getElementById('bSlider');
+        const muValueSpan = document.getElementById('muValue');
+        const bValueSpan = document.getElementById('bValue');
+        const showNormalCheckbox = document.getElementById('showNormal');
+        const laplacianChartCtx = document.getElementById('laplacianChart').getContext('2d');
+
+        let laplacianChart; // Will hold our Chart.js instance
+
+        // Function to calculate Laplacian PDF
+        function laplacianPDF(x, mu, b) {
+            return (1 / (2 * b)) * Math.exp(-Math.abs(x - mu) / b);
+        }
+
+        // Function to calculate Normal PDF (for comparison)
+        function normalPDF(x, mean, variance) {
+            const stdDev = Math.sqrt(variance);
+            return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+        }
+
+        // Function to update the chart
+        function updateChart() {
+            const mu = parseFloat(muSlider.value);
+            const b = parseFloat(bSlider.value);
+            const showNormal = showNormalCheckbox.checked;
+
+            muValueSpan.textContent = mu;
+            bValueSpan.textContent = b;
+
+            const x_values = Array.from({ length: 200 }, (_, i) => -10 + (i * 20 / 199)); // Range from -10 to 10
+            const laplacian_y_values = x_values.map(x => laplacianPDF(x, mu, b));
+
+            // Calculate Normal distribution parameters for comparison:
+            // Match mean (mu) and variance (2*b^2)
+            const normal_mean = mu;
+            const normal_variance = 2 * b * b;
+            const normal_y_values = x_values.map(x => normalPDF(x, normal_mean, normal_variance));
+
+            if (laplacianChart) {
+                laplacianChart.data.labels = x_values.map(x => x.toFixed(2));
+                laplacianChart.data.datasets[0].data = laplacian_y_values;
+                
+                // Update or add Normal distribution dataset
+                if (showNormal) {
+                    if (laplacianChart.data.datasets.length < 2) {
+                        laplacianChart.data.datasets.push({
+                            label: 'Normal Distribution',
+                            data: normal_y_values,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: false
+                        });
+                    } else {
+                        laplacianChart.data.datasets[1].data = normal_y_values;
+                        laplacianChart.data.datasets[1].hidden = false; // Ensure it's visible
+                    }
+                } else {
+                    // Hide or remove Normal distribution dataset if it exists
+                    if (laplacianChart.data.datasets.length > 1) {
+                        laplacianChart.data.datasets[1].hidden = true; // Just hide it
+                    }
+                }
+                laplacianChart.update();
+            } else {
+                // Initialize the chart
+                laplacianChart = new Chart(laplacianChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: x_values.map(x => x.toFixed(2)),
+                        datasets: [
+                            {
+                                label: 'Laplacian Distribution',
+                                data: laplacian_y_values,
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Laplacian Distribution PDF',
+                                font: {
+                                    size: 18
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear', // Use linear scale for x-axis
+                                title: {
+                                    display: true,
+                                    text: 'x'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Density'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Add event listeners to sliders and checkbox
+        muSlider.addEventListener('input', updateChart);
+        bSlider.addEventListener('input', updateChart);
+        showNormalCheckbox.addEventListener('change', updateChart);
+
+        // Initial chart render
+        updateChart();
+    </script>
+</body>
+</html>
